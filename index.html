@@ -1,0 +1,2548 @@
+"<!DOCTYPE html>
+
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+ <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+
+  <meta name="theme-color" content="#0a0a0a" />
+
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+
+ <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+
+ <title>Emergency SOS - Your Safety App</title>
+1
+  <meta name="description" content="Emergency SOS app with one-touch emergency dialing, live location sharing, and quick access to help." />
+
+ <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+ <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+
+
+    :root {
+
+      --bg: #0a0a0a;
+
++     --fg: #fafafa;
+
+     --card: #121212;
+
+      --card-fg: #fafafa;
+
+      --primary: #dc2626;
+
+     --primary-fg: #ffffff;
+
++      --secondary-fg: #fafafa;
+
++      --muted: #262626;
+
+     --muted-fg: #a3a3a3;
+
+     --border: #2e2e2e;
+
+   --success: #16a34a;
+    --warning: #ca8a04;
+
+     --destructive: #dc2626;
+     --radius: 1rem;
+
++    }
+32
++
+33
++    body {
+34
++      font-family: 'Inter', system-ui, sans-serif;
+35
+     background: var(--bg);
+
+      color: var(--fg);
+      -webkit-font-smoothing: antialiased;
+     min-height: 100vh;
+     overflow-x: hidden;+    }
+
+
+    .container { max-width: 480px; margin: 0 auto; padding: 0 16px; }
+
+
+  /* Glass card */
+
+   .glass-card {
+
+    background: rgba(18,18,18,0.8);
+     backdrop-filter: blur(20px);
+     -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(46,46,46,0.5);
+      border-radius: 16px;
+     padding: 20px;
+
+   }
+
+   /* Status Bar */
+   .status-bar {
++      display: flex;
+57
++      align-items: center;
+58
++      justify-content: space-between;
+59
++      padding: 8px 16px;
+60
++      background: rgba(18,18,18,0.5);
+61
++      backdrop-filter: blur(8px);
+62
++      border-bottom: 1px solid rgba(46,46,46,0.5);
+63
++      font-size: 14px;
+64
++      font-weight: 500;
+65
++    }
+66
++    .status-bar .status-icons { display: flex; align-items: center; gap: 8px; }
+67
++    .status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px rgba(22,163,74,0.6); }
+68
++    .battery-indicator { font-size: 12px; font-weight: 500; color: var(--success); }
+69
++
+70
++    /* Header */
+71
++    .header { text-align: center; padding: 24px 0 8px; }
+72
++    .header h1 { font-size: 24px; font-weight: 700; }
+73
++    .header p { font-size: 14px; color: var(--muted-fg); margin-top: 4px; }
+74
++
+75
++    /* SOS Button */
+76
++    .sos-container { display: flex; flex-direction: column; align-items: center; gap: 16px; padding: 24px 0; }
+77
++    .sos-wrapper { position: relative; }
+78
++    .sos-ring-1, .sos-ring-2 {
+79
++      position: absolute; inset: 0; border-radius: 50%;
+80
++      animation: ping 1.5s ease-out infinite;
+81
++    }
+82
++    .sos-ring-1 { background: rgba(220,38,38,0.15); transform: scale(1.4); }
+83
++    .sos-ring-2 { background: rgba(220,38,38,0.08); transform: scale(1.8); animation-delay: 0.5s; }
+84
++
+85
++    .sos-btn {
+86
++      position: relative;
+87
++      width: 192px; height: 192px;
+88
++      border-radius: 50%;
+89
++      border: none;
+90
++      cursor: pointer;
+91
++      display: flex; flex-direction: column;
+92
++      align-items: center; justify-content: center; gap: 8px;
+93
++      background: linear-gradient(135deg, #dc2626, #b91c1c, #dc2626);
+94
++      color: white;
+95
++      font-weight: 900; font-size: 24px;
+96
++      text-transform: uppercase; letter-spacing: 2px;
+97
++      box-shadow: 0 0 20px rgba(220,38,38,0.4), 0 0 40px rgba(220,38,38,0.2), 0 0 60px rgba(220,38,38,0.1);
+98
++      transition: all 0.2s;
+99
++      -webkit-tap-highlight-color: transparent;
+100
++      user-select: none;
+101
++    }
+102
++    .sos-btn:hover { transform: scale(1.05); }
+103
++    .sos-btn:active { transform: scale(0.95); }
+104
++    .sos-btn.active {
+105
++      box-shadow: 0 0 30px rgba(220,38,38,0.6), 0 0 60px rgba(220,38,38,0.4), 0 0 90px rgba(220,38,38,0.2);
+106
++      animation: emergency-pulse 2s ease-in-out infinite;
+107
++    }
+108
++    .sos-btn svg { width: 64px; height: 64px; }
+109
++    .sos-hint { font-size: 14px; color: var(--muted-fg); text-align: center; max-width: 200px; }
+110
++    .sos-hint.active-text { color: var(--primary); font-weight: 600; }
+111
++
+112
++    /* Progress ring */
+113
++    .progress-ring { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+114
++    .progress-ring circle { fill: none; stroke-width: 8; }
+115
++    .progress-ring .track { stroke: var(--muted); }
+116
++    .progress-ring .progress { stroke: var(--primary); stroke-linecap: round; transition: stroke-dasharray 0.1s; }
+117
++
+118
++    /* Emergency Dialer */
+119
++    .section-title { font-size: 14px; font-weight: 500; color: var(--muted-fg); padding: 0 4px; margin-bottom: 12px; }
+120
++    .dialer-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+121
++    .dial-btn {
+122
++      display: flex; flex-direction: column;
+123
++      align-items: center; justify-content: center; gap: 8px;
+124
++      padding: 16px; border-radius: 16px;
+125
++      border: none; cursor: pointer;
+126
++      transition: all 0.2s;
+127
++      font-family: inherit;
+128
++      -webkit-tap-highlight-color: transparent;
+129
++      min-height: 56px;
+130
++    }
+131
++    .dial-btn:active { transform: scale(0.95); }
+132
++    .dial-btn svg { width: 32px; height: 32px; }
+133
++    .dial-btn .name { font-size: 14px; font-weight: 600; }
+134
++    .dial-btn .number { font-size: 12px; opacity: 0.75; }
+135
++
+136
++    .dial-btn.police { background: rgba(59,130,246,0.2); color: #60a5fa; }
+137
++    .dial-btn.police:hover { background: rgba(59,130,246,0.3); }
+138
++    .dial-btn.ambulance { background: rgba(220,38,38,0.2); color: #dc2626; }
+139
++    .dial-btn.ambulance:hover { background: rgba(220,38,38,0.3); }
+140
++    .dial-btn.fire { background: rgba(249,115,22,0.2); color: #fb923c; }
+141
++    .dial-btn.fire:hover { background: rgba(249,115,22,0.3); }
+142
++
+143
++    .universal-btn {
+144
++      display: flex; align-items: center; justify-content: center; gap: 12px;
+145
++      width: 100%; padding: 16px; border-radius: 16px;
+146
++      background: rgba(220,38,38,0.2); color: var(--primary);
+147
++      border: none; cursor: pointer;
+148
++      font-family: inherit; font-size: 16px; font-weight: 600;
+149
++      transition: all 0.2s; margin-top: 12px;
+150
++      -webkit-tap-highlight-color: transparent;
+151
++    }
+152
++    .universal-btn:hover { background: rgba(220,38,38,0.3); }
+153
++    .universal-btn:active { transform: scale(0.95); }
+154
++    .universal-btn svg { width: 24px; height: 24px; }
+155
++    .universal-btn .sub { font-size: 12px; opacity: 0.75; }
+156
++
+157
++    /* Location Hub */
+158
++    .location-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+159
++    .location-icon-wrap {
+160
++      width: 40px; height: 40px; border-radius: 12px;
+161
++      display: flex; align-items: center; justify-content: center;
+162
++    }
+163
++    .location-icon-wrap.inactive { background: rgba(220,38,38,0.2); }
+164
++    .location-icon-wrap.active { background: rgba(22,163,74,0.2); }
+165
++    .location-icon-wrap svg { width: 20px; height: 20px; }
+166
++
+167
++    .location-title { font-weight: 600; font-size: 15px; }
+168
++    .location-sub { font-size: 12px; color: var(--muted-fg); display: flex; align-items: center; gap: 4px; }
+169
++    .tracking-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--success); box-shadow: 0 0 6px rgba(22,163,74,0.6); display: inline-block; }
+170
++    .accuracy-label { font-size: 12px; font-weight: 500; }
+171
++    .accuracy-label.good { color: var(--success); }
+172
++    .accuracy-label.fair { color: var(--warning); }
+173
++    .accuracy-label.poor { color: var(--destructive); }
+174
++    .accuracy-meters { font-size: 10px; color: var(--muted-fg); }
+175
++
+176
++    .coords-box {
+177
++      background: rgba(31,31,31,0.5);
+178
++      border-radius: 12px; padding: 12px;
+179
++      margin-bottom: 12px;
+180
++    }
+181
++    .coords-label { font-size: 12px; color: var(--muted-fg); margin-bottom: 4px; }
+182
++    .coords-value { font-family: monospace; font-size: 14px; }
+183
++
+184
++    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+185
++
+186
++    .btn {
+187
++      display: flex; align-items: center; justify-content: center; gap: 8px;
+188
++      height: 48px; border-radius: 12px;
+189
++      border: none; cursor: pointer;
+190
++      font-family: inherit; font-size: 14px; font-weight: 500;
+191
++      transition: all 0.2s;
+192
++      -webkit-tap-highlight-color: transparent;
+193
++    }
+194
++    .btn:active { transform: scale(0.95); }
+195
++    .btn svg { width: 16px; height: 16px; }
+196
++
+197
++    .btn-secondary { background: var(--secondary); color: var(--secondary-fg); }
+198
++    .btn-secondary:hover { background: #2a2a2a; }
+199
++    .btn-primary { background: var(--primary); color: var(--primary-fg); }
+200
++    .btn-primary:hover { background: #b91c1c; }
+201
++    .btn-outline {
+202
++      background: transparent; color: var(--fg);
+203
++      border: 1px solid var(--border);
+204
++    }
+205
++    .btn-outline:hover { background: var(--secondary); }
+206
++    .btn-full { width: 100%; }
+207
++    .btn-large { height: 56px; font-size: 16px; }
+208
++
+209
++    .btn-success-outline { border-color: rgba(22,163,74,0.5); color: var(--success); }
+210
++    .btn-success-outline:hover { background: rgba(22,163,74,0.1); }
+211
++    .btn-danger-outline { border-color: rgba(220,38,38,0.5); color: var(--destructive); }
+212
++    .btn-danger-outline:hover { background: rgba(220,38,38,0.1); }
+213
++
+214
++    /* Quick Actions */
+215
++    .quick-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+216
++    .quick-btn {
+217
++      display: flex; flex-direction: column;
+218
++      align-items: center; justify-content: center; gap: 6px;
+219
++      padding: 12px; border-radius: 12px;
+220
++      border: none; cursor: pointer;
+221
++      font-family: inherit; font-size: 12px; font-weight: 500;
+222
++      transition: all 0.2s; min-height: 56px;
+223
++      -webkit-tap-highlight-color: transparent;
+224
++    }
+225
++    .quick-btn:active { transform: scale(0.95); }
+226
++    .quick-btn svg { width: 20px; height: 20px; }
+227
++
+228
++    .quick-btn.fake-call { background: rgba(59,130,246,0.2); color: #60a5fa; }
+229
++    .quick-btn.siren { background: rgba(249,115,22,0.2); color: #fb923c; }
+230
++    .quick-btn.flashlight { background: rgba(234,179,8,0.2); color: #facc15; }
+231
++    .quick-btn.photo { background: rgba(168,85,247,0.2); color: #c084fc; }
+232
++    .quick-btn.record { background: rgba(220,38,38,0.2); color: #f87171; }
+233
++    .quick-btn.record.active { background: rgba(220,38,38,0.4); color: #fca5a5; animation: pulse 1s infinite; }
+234
++    .quick-btn.report { background: rgba(34,197,94,0.2); color: #4ade80; }
+235
++
+236
++    /* Bottom Nav */
+237
++    .bottom-nav {
+238
++      position: fixed; bottom: 0; left: 0; right: 0;
+239
++      background: rgba(18,18,18,0.95);
+240
++      backdrop-filter: blur(20px);
+241
++      -webkit-backdrop-filter: blur(20px);
+242
++      border-top: 1px solid rgba(46,46,46,0.5);
+243
++      padding-bottom: env(safe-area-inset-bottom, 0);
+244
++      z-index: 50;
+245
++    }
+246
++    .nav-inner {
+247
++      display: flex; align-items: center; justify-content: space-around;
+248
++      height: 64px; max-width: 480px; margin: 0 auto;
+249
++    }
+250
++    .nav-item {
+251
++      display: flex; flex-direction: column;
+252
++      align-items: center; justify-content: center; gap: 2px;
+253
++      padding: 8px 16px; border-radius: 12px;
+254
++      cursor: pointer; border: none; background: none;
+255
++      font-family: inherit; text-decoration: none;
+256
++      transition: all 0.2s;
+257
++      -webkit-tap-highlight-color: transparent;
+258
++    }
+259
++    .nav-item svg { width: 20px; height: 20px; transition: color 0.2s; }
+260
++    .nav-item span { font-size: 10px; font-weight: 500; transition: color 0.2s; }
+261
++    .nav-item.emergency svg, .nav-item.emergency span { color: rgba(220,38,38,0.7); }
+262
++    .nav-item.emergency.active { background: rgba(220,38,38,0.2); }
+263
++    .nav-item.emergency.active svg, .nav-item.emergency.active span { color: var(--primary); }
+264
++    .nav-item:not(.emergency) svg, .nav-item:not(.emergency) span { color: var(--muted-fg); }
+265
++    .nav-item:not(.emergency).active { background: var(--secondary); }
+266
++    .nav-item:not(.emergency).active svg, .nav-item:not(.emergency).active span { color: var(--fg); }
+267
++
+268
++    /* Pages */
+269
++    .page { display: none; min-height: 100vh; padding-bottom: 80px; }
+270
++    .page.active { display: block; }
+271
++    .page-content { padding: 24px 0; }
+272
++    .page-content > * + * { margin-top: 24px; }
+273
++
+274
++    /* Contacts */
+275
++    .contact-item {
+276
++      display: flex; align-items: center; gap: 12px;
+277
++      padding: 12px; border-radius: 12px;
+278
++      background: rgba(31,31,31,0.3);
+279
++      transition: background 0.2s;
+280
++    }
+281
++    .contact-item:hover { background: rgba(31,31,31,0.5); }
+282
++    .contact-item + .contact-item { margin-top: 8px; }
+283
++    .contact-avatar {
+284
++      width: 40px; height: 40px; border-radius: 50%;
+285
++      background: rgba(220,38,38,0.2);
+286
++      display: flex; align-items: center; justify-content: center;
+287
++      flex-shrink: 0;
+288
++    }
+289
++    .contact-avatar svg { width: 20px; height: 20px; color: var(--primary); }
+290
++    .contact-info { flex: 1; min-width: 0; }
+291
++    .contact-name { font-weight: 500; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+292
++    .contact-phone { font-size: 12px; color: var(--muted-fg); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+293
++    .contact-actions { display: flex; gap: 4px; }
+294
++    .icon-btn {
+295
++      width: 36px; height: 36px; border-radius: 8px;
+296
++      border: none; background: none; cursor: pointer;
+297
++      display: flex; align-items: center; justify-content: center;
+298
++      transition: all 0.2s; color: var(--muted-fg);
+299
++    }
+300
++    .icon-btn:hover { background: var(--secondary); }
+301
++    .icon-btn svg { width: 16px; height: 16px; }
+302
++    .icon-btn.call { color: var(--success); }
+303
++    .icon-btn.delete { color: var(--destructive); }
+304
++
+305
++    /* Add contact form */
+306
++    .add-form {
+307
++      background: rgba(31,31,31,0.5);
+308
++      border-radius: 12px; padding: 12px;
+309
++      display: none;
+310
++    }
+311
++    .add-form.visible { display: block; }
+312
++    .add-form input {
+313
++      width: 100%; padding: 10px 12px;
+314
++      background: rgba(10,10,10,0.5);
+315
++      border: 1px solid var(--border);
+316
++      border-radius: 8px; color: var(--fg);
+317
++      font-family: inherit; font-size: 14px;
+318
++      outline: none;
+319
++    }
+320
++    .add-form input:focus { border-color: var(--primary); }
+321
++    .add-form input + input { margin-top: 8px; }
+322
++    .add-form .form-actions { display: flex; gap: 8px; margin-top: 12px; }
+323
++    .add-form .form-actions .btn { flex: 1; height: 40px; font-size: 14px; }
+324
++
+325
++    /* Medical Card */
+326
++    .medical-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+327
++    .medical-item {
+328
++      display: flex; align-items: center; gap: 8px;
+329
++      padding: 12px; background: rgba(31,31,31,0.3);
+330
++      border-radius: 12px;
+331
++    }
+332
++    .medical-item svg { width: 16px; height: 16px; flex-shrink: 0; }
+333
++    .medical-item .label { font-size: 10px; color: var(--muted-fg); }
+334
++    .medical-item .value { font-weight: 600; font-size: 14px; }
+335
++    .medical-item.full { grid-column: span 2; }
+336
++
+337
++    .blood-type-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+338
++    .blood-chip {
+339
++      padding: 6px 12px; border-radius: 8px; font-size: 14px; font-weight: 500;
+340
++      background: var(--secondary); color: var(--secondary-fg);
+341
++      border: none; cursor: pointer; transition: all 0.2s;
+342
++    }
+343
++    .blood-chip.selected { background: var(--primary); color: white; }
+344
++
+345
++    .edit-form { display: none; }
+346
++    .edit-form.visible { display: block; }
+347
++    .edit-form > * + * { margin-top: 12px; }
+348
++    .edit-form label { display: block; font-size: 12px; color: var(--muted-fg); margin-bottom: 4px; }
+349
++    .edit-form input {
+350
++      width: 100%; padding: 10px 12px;
+351
++      background: rgba(10,10,10,0.5);
+352
++      border: 1px solid var(--border);
+353
++      border-radius: 8px; color: var(--fg);
+354
++      font-family: inherit; font-size: 14px; outline: none;
+355
++    }
+356
++    .edit-form input:focus { border-color: var(--primary); }
+357
++
+358
++    /* Settings */
+359
++    .settings-group {
+360
++      background: rgba(18,18,18,0.8);
+361
++      backdrop-filter: blur(20px);
+362
++      border: 1px solid rgba(46,46,46,0.5);
+363
++      border-radius: 16px;
+364
++      overflow: hidden;
+365
++    }
+366
++    .setting-item {
+367
++      display: flex; align-items: center; justify-content: space-between;
+368
++      padding: 16px;
+369
++    }
+370
++    .setting-item + .setting-item { border-top: 1px solid rgba(46,46,46,0.5); }
+371
++    .setting-left { display: flex; align-items: center; gap: 12px; }
+372
++    .setting-icon {
+373
++      width: 40px; height: 40px; border-radius: 12px;
+374
++      background: var(--secondary);
+375
++      display: flex; align-items: center; justify-content: center;
+376
++      color: var(--muted-fg);
+377
++    }
+378
++    .setting-icon svg { width: 20px; height: 20px; }
+379
++    .setting-title { font-weight: 500; font-size: 14px; }
+380
++    .setting-desc { font-size: 12px; color: var(--muted-fg); }
+381
++
+382
++    /* Toggle switch */
+383
++    .toggle {
+384
++      width: 44px; height: 24px;
+385
++      background: var(--muted); border-radius: 12px;
+386
++      position: relative; cursor: pointer;
+387
++      border: none; transition: background 0.2s;
+388
++      -webkit-tap-highlight-color: transparent;
+389
++    }
+390
++    .toggle::after {
+391
++      content: '';
+392
++      position: absolute; top: 2px; left: 2px;
+393
++      width: 20px; height: 20px;
+394
++      background: white; border-radius: 50%;
+395
++      transition: transform 0.2s;
+396
++    }
+397
++    .toggle.on { background: var(--primary); }
+398
++    .toggle.on::after { transform: translateX(20px); }
+399
++
+400
++    /* History */
+401
++    .history-item {
+402
++      display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;
+403
++    }
+404
++    .history-left { display: flex; align-items: flex-start; gap: 12px; }
+405
++    .history-icon {
+406
++      width: 32px; height: 32px; border-radius: 8px;
+407
++      background: var(--secondary);
+408
++      display: flex; align-items: center; justify-content: center;
+409
++      flex-shrink: 0; margin-top: 2px;
+410
++    }
+411
++    .history-icon svg { width: 16px; height: 16px; }
+412
++    .history-desc { font-weight: 500; font-size: 14px; }
+413
++    .history-time { font-size: 12px; color: var(--muted-fg); }
+414
++    .history-link { font-size: 12px; color: var(--primary); text-decoration: none; margin-top: 4px; display: inline-block; }
+415
++    .history-link:hover { text-decoration: underline; }
+416
++
+417
++    /* Empty state */
+418
++    .empty-state { text-align: center; padding: 32px 0; }
+419
++    .empty-state svg { width: 48px; height: 48px; color: var(--muted-fg); margin: 0 auto 16px; }
+420
++    .empty-state h3 { font-weight: 600; margin-bottom: 8px; }
+421
++    .empty-state p { font-size: 14px; color: var(--muted-fg); }
+422
++
+423
++    /* Tips */
+424
++    .tips-list { list-style: none; }
+425
++    .tips-list li { display: flex; align-items: flex-start; gap: 8px; font-size: 14px; color: var(--muted-fg); }
+426
++    .tips-list li + li { margin-top: 8px; }
+427
++    .tips-list li .dot { color: var(--primary); }
+428
++
+429
++    /* Info box */
+430
++    .info-box {
+431
++      display: flex; align-items: flex-start; gap: 12px;
+432
++      padding: 12px; background: rgba(31,31,31,0.3);
+433
++      border-radius: 12px;
+434
++    }
+435
++    .info-box + .info-box { margin-top: 12px; }
+436
++    .info-box svg { width: 20px; height: 20px; flex-shrink: 0; margin-top: 2px; }
+437
++    .info-box .info-title { font-weight: 500; font-size: 14px; }
+438
++    .info-box .info-desc { font-size: 12px; color: var(--muted-fg); }
+439
++
+440
++    /* Toast */
+441
++    .toast-container {
+442
++      position: fixed; top: 16px; left: 50%; transform: translateX(-50%);
+443
++      z-index: 100; display: flex; flex-direction: column; gap: 8px;
+444
++      pointer-events: none; width: calc(100% - 32px); max-width: 400px;
+445
++    }
+446
++    .toast {
+447
++      background: var(--card); border: 1px solid var(--border);
+448
++      border-radius: 12px; padding: 12px 16px;
+449
++      color: var(--fg); font-size: 14px; font-weight: 500;
+450
++      box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+451
++      animation: toast-in 0.3s ease;
+452
++      pointer-events: auto;
+453
++    }
+454
++    .toast.success { border-left: 3px solid var(--success); }
+455
++    .toast.error { border-left: 3px solid var(--destructive); }
+456
++    .toast.info { border-left: 3px solid #60a5fa; }
+457
++
+458
++    /* Section spacing helper */
+459
++    .section + .section { margin-top: 24px; }
+460
++
+461
++    .flex-between { display: flex; align-items: center; justify-content: space-between; }
+462
++    .flex-center { display: flex; align-items: center; gap: 12px; }
+463
++
+464
++    .text-btn {
+465
++      background: none; border: none; cursor: pointer;
+466
++      font-family: inherit; font-size: 14px; font-weight: 500;
+467
++      padding: 4px 8px; border-radius: 8px; transition: all 0.2s;
+468
++    }
+469
++    .text-btn.primary { color: var(--primary); }
+470
++    .text-btn.primary:hover { background: rgba(220,38,38,0.1); }
+471
++    .text-btn.danger { color: var(--destructive); }
+472
++    .text-btn.danger:hover { background: rgba(220,38,38,0.1); }
+473
++
+474
++    /* Animations */
+475
++    @keyframes ping {
+476
++      0% { transform: scale(1); opacity: 1; }
+477
++      75%, 100% { transform: scale(2); opacity: 0; }
+478
++    }
+479
++    @keyframes emergency-pulse {
+480
++      0%, 100% { transform: scale(1); opacity: 1; }
+481
++      50% { transform: scale(1.05); opacity: 0.9; }
+482
++    }
+483
++    @keyframes pulse {
+484
++      0%, 100% { opacity: 1; }
+485
++      50% { opacity: 0.5; }
+486
++    }
+487
++    @keyframes toast-in {
+488
++      from { opacity: 0; transform: translateY(-20px); }
+489
++      to { opacity: 1; transform: translateY(0); }
+490
++    }
+491
++
+492
++    /* Chevron icon for settings */
+493
++    .chevron { width: 20px; height: 20px; color: var(--muted-fg); }
+494
++  </style>
+495
++</head>
+496
++<body>
+497
++  <div id="app">
+498
++    <!-- Toast Container -->
+499
++    <div class="toast-container" id="toastContainer"></div>
+500
++
+501
++    <!-- ===== SOS PAGE ===== -->
+502
++    <div class="page active" id="page-sos">
+503
++      <div class="status-bar">
+504
++        <span id="clock"></span>
+505
++        <div class="status-icons">
+506
++          <div class="status-dot"></div>
+507
++          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16" style="color:var(--success)"><path d="M5 12.55a11 11 0 0 1 14.08 0"/><path d="M1.42 9a16 16 0 0 1 21.16 0"/><path d="M8.53 16.11a6 6 0 0 1 6.95 0"/><circle cx="12" cy="20" r="1"/></svg>
+508
++          <span class="battery-indicator" id="battery">100%</span>
+509
++        </div>
+510
++      </div>
+511
++
+512
++      <div class="container">
+513
++        <div class="page-content">
+514
++          <div class="header">
+515
++            <h1>Emergency SOS</h1>
+516
++            <p>Your safety is our priority</p>
+517
++          </div>
+518
++
+519
++          <!-- SOS Button -->
+520
++          <div class="sos-container">
+521
++            <div class="sos-wrapper">
+522
++              <div class="sos-ring-1"></div>
+523
++              <div class="sos-ring-2"></div>
+524
++              <svg class="progress-ring" viewBox="0 0 200 200" style="width:192px;height:192px;position:absolute;inset:0;">
+525
++                <circle class="track" cx="100" cy="100" r="90" />
+526
++                <circle class="progress" cx="100" cy="100" r="90" stroke-dasharray="0 565" id="sosProgress" />
+527
++              </svg>
+528
++              <button class="sos-btn" id="sosBtn">
+529
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+530
++                <span>SOS</span>
+531
++              </button>
+532
++            </div>
+533
++            <p class="sos-hint" id="sosHint">Hold for 1.5 seconds to activate emergency alert</p>
+534
++          </div>
+535
++
+536
++          <!-- Emergency Dialer -->
+537
++          <div class="section">
+538
++            <div class="section-title">Emergency Services</div>
+539
++            <div class="dialer-grid">
+540
++              <button class="dial-btn police" onclick="makeCall('100')">
+541
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+542
++                <span class="name">Police</span>
+543
++                <span class="number">100</span>
+544
++              </button>
+545
++              <button class="dial-btn ambulance" onclick="makeCall('102')">
+546
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 12h2l2-4 3 8 2-4h2"/><circle cx="12" cy="12" r="10"/></svg>
+547
++                <span class="name">Ambulance</span>
+548
++                <span class="number">102</span>
+549
++              </button>
+550
++              <button class="dial-btn fire" onclick="makeCall('101')">
+551
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8.5 14.5A2.5 2.5 0 0 0 11 12c0-1.38-.5-2-1-3-1.072-2.143-.224-4.054 2-6 .5 2.5 2 4.9 4 6.5 2 1.6 3 3.5 3 5.5a7 7 0 1 1-14 0c0-1.153.433-2.294 1-3a2.5 2.5 0 0 0 2.5 2.5z"/></svg>
+552
++                <span class="name">Fire</span>
+553
++                <span class="number">101</span>
+554
++              </button>
+555
++            </div>
+556
++            <button class="universal-btn" onclick="makeCall('112')">
+557
++              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+558
++              <div>
+559
++                <span>Universal Emergency</span><br>
+560
++                <span class="sub">112</span>
+561
++              </div>
+562
++            </button>
+563
++          </div>
+564
++
+565
++          <!-- Location Hub -->
+566
++          <div class="section">
+567
++            <div class="glass-card" id="locationCard">
+568
++              <div class="location-header">
+569
++                <div class="flex-center">
+570
++                  <div class="location-icon-wrap inactive" id="locationIconWrap">
+571
++                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--primary)"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+572
++                  </div>
+573
++                  <div>
+574
++                    <div class="location-title">Live Location</div>
+575
++                    <div class="location-sub" id="locationStatus">Share your location</div>
+576
++                  </div>
+577
++                </div>
+578
++                <div id="accuracyDisplay" style="text-align:right;display:none;">
+579
++                  <div class="accuracy-label" id="accuracyLabel"></div>
+580
++                  <div class="accuracy-meters" id="accuracyMeters"></div>
+581
++                </div>
+582
++              </div>
+583
++
+584
++              <div id="locationContent">
+585
++                <button class="btn btn-primary btn-full btn-large" onclick="getLocation()">
+586
++                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+587
++                  Get My Location
+588
++                </button>
+589
++              </div>
+590
++
+591
++              <div style="margin-top:8px;">
+592
++                <button class="btn btn-outline btn-full btn-success-outline" id="trackingBtn" onclick="toggleTracking()">
+593
++                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><polygon points="3 11 22 2 13 21 11 13 3 11"/></svg>
+594
++                  Start Live Tracking
+595
++                </button>
+596
++              </div>
+597
++            </div>
+598
++          </div>
+599
++
+600
++          <!-- Quick Actions -->
+601
++          <div class="section">
+602
++            <div class="section-title">Quick Actions</div>
+603
++            <div class="quick-grid">
+604
++              <button class="quick-btn fake-call" onclick="showToast('Fake call initiated','success')">
+605
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.68 13.31a16 16 0 0 0 3.41 2.6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.11 2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91"/><line x1="23" y1="1" x2="17" y2="7"/><line x1="17" y1="1" x2="23" y2="7"/></svg>
+606
++                <span>Fake Call</span>
+607
++              </button>
+608
++              <button class="quick-btn siren" onclick="showToast('Siren mode activated','info')">
+609
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></svg>
+610
++                <span>Siren</span>
+611
++              </button>
+612
++              <button class="quick-btn flashlight" id="flashBtn" onclick="toggleFlashlight()">
+613
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 6c0 2-2 2-2 4v10a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2V10c0-2-2-2-2-4V2h12z"/><line x1="9" y1="2" x2="9" y2="6"/><line x1="15" y1="2" x2="15" y2="6"/></svg>
+614
++                <span>Flashlight</span>
+615
++              </button>
+616
++              <button class="quick-btn photo" onclick="showToast('Camera accessed - coming soon','success')">
+617
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+618
++                <span>Photo</span>
+619
++              </button>
+620
++              <button class="quick-btn record" id="recordBtn" onclick="toggleRecording()">
+621
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="22"/></svg>
+622
++                <span>Record</span>
+623
++              </button>
+624
++              <button class="quick-btn report" onclick="showToast('Incident report - coming soon','info')">
+625
++                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><line x1="10" y1="9" x2="8" y2="9"/></svg>
+626
++                <span>Report</span>
+627
++              </button>
+628
++            </div>
+629
++          </div>
+630
++        </div>
+631
++      </div>
+632
++    </div>
+633
++
+634
++    <!-- ===== CONTACTS PAGE ===== -->
+635
++    <div class="page" id="page-contacts">
+636
++      <div class="status-bar">
+637
++        <span class="clock-mirror"></span>
+638
++        <div class="status-icons"><div class="status-dot"></div><span class="battery-indicator battery-mirror"></span></div>
+639
++      </div>
+640
++      <div class="container">
+641
++        <div class="page-content">
+642
++          <div>
+643
++            <h1 style="font-size:24px;font-weight:700;">Emergency Contacts</h1>
+644
++            <p style="font-size:14px;color:var(--muted-fg);margin-top:4px;">People to notify in case of emergency</p>
+645
++          </div>
+646
++
+647
++          <div class="glass-card">
+648
++            <div class="flex-between" style="margin-bottom:16px;">
+649
++              <h3 style="font-weight:600;">Emergency Contacts</h3>
+650
++              <button class="text-btn primary" onclick="toggleAddForm()">+ Add</button>
+651
++            </div>
+652
++            <div class="add-form" id="addContactForm">
+653
++              <input type="text" placeholder="Name" id="newContactName">
+654
++              <input type="tel" placeholder="Phone number" id="newContactPhone">
+655
++              <div class="form-actions">
+656
++                <button class="btn btn-outline" onclick="toggleAddForm()">Cancel</button>
+657
++                <button class="btn btn-primary" onclick="addContact()">Save</button>
+658
++              </div>
+659
++            </div>
+660
++            <div id="contactsList"></div>
+661
++          </div>
+662
++
+663
++          <div class="glass-card">
+664
++            <h3 style="font-weight:600;margin-bottom:12px;">Quick Tips</h3>
+665
++            <ul class="tips-list">
+666
++              <li><span class="dot">•</span> Add at least 2-3 trusted contacts</li>
+667
++              <li><span class="dot">•</span> Include family members and close friends</li>
+668
++              <li><span class="dot">•</span> Keep contact information up to date</li>
+669
++              <li><span class="dot">•</span> Inform your contacts about this app</li>
+670
++            </ul>
+671
++          </div>
+672
++        </div>
+673
++      </div>
+674
++    </div>
+675
++
+676
++    <!-- ===== MEDICAL PAGE ===== -->
+677
++    <div class="page" id="page-medical">
+678
++      <div class="status-bar">
+679
++        <span class="clock-mirror"></span>
+680
++        <div class="status-icons"><div class="status-dot"></div><span class="battery-indicator battery-mirror"></span></div>
+681
++      </div>
+682
++      <div class="container">
+683
++        <div class="page-content">
+684
++          <div>
+685
++            <h1 style="font-size:24px;font-weight:700;">Medical Info</h1>
+686
++            <p style="font-size:14px;color:var(--muted-fg);margin-top:4px;">Critical health information for first responders</p>
+687
++          </div>
+688
++
+689
++          <div class="glass-card">
+690
++            <div class="flex-between" style="margin-bottom:16px;">
+691
++              <div class="flex-center">
+692
++                <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center;">
+693
++                  <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="20" height="20"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+694
++                </div>
+695
++                <h3 style="font-weight:600;">Medical Info</h3>
+696
++              </div>
+697
++              <button class="text-btn primary" id="medicalEditBtn" onclick="toggleMedicalEdit()">Edit</button>
+698
++            </div>
+699
++
+700
++            <div id="medicalDisplay"></div>
+701
++            <div class="edit-form" id="medicalEditForm">
+702
++              <div>
+703
++                <label>Blood Type</label>
+704
++                <div class="blood-type-grid" id="bloodTypeGrid"></div>
+705
++              </div>
+706
++              <div><label>Allergies</label><input type="text" placeholder="e.g., Penicillin, Peanuts" id="medAllergies"></div>
+707
++              <div><label>Medications</label><input type="text" placeholder="Current medications" id="medMedications"></div>
+708
++              <div><label>Medical Conditions</label><input type="text" placeholder="e.g., Diabetes, Asthma" id="medConditions"></div>
+709
++              <div><label>Emergency Notes</label><input type="text" placeholder="Additional important info" id="medNotes"></div>
+710
++              <div class="form-actions" style="display:flex;gap:8px;">
+711
++                <button class="btn btn-outline" style="flex:1;height:40px;" onclick="cancelMedicalEdit()">Cancel</button>
+712
++                <button class="btn btn-primary" style="flex:1;height:40px;" onclick="saveMedicalInfo()">Save</button>
+713
++              </div>
+714
++            </div>
+715
++          </div>
+716
++
+717
++          <div class="glass-card">
+718
++            <h3 style="font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;">
+719
++              <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="20" height="20"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/><path d="M3.22 12H9.5l.5-1 2 4.5 2-7 1.5 3.5h5.27"/></svg>
+720
++              Why This Matters
+721
++            </h3>
+722
++            <div class="info-box">
+723
++              <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="20" height="20"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+724
++              <div>
+725
++                <div class="info-title">Blood Type</div>
+726
++                <div class="info-desc">Critical for blood transfusions in emergencies</div>
+727
++              </div>
+728
++            </div>
+729
++            <div class="info-box">
+730
++              <svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" width="20" height="20"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+731
++              <div>
+732
++                <div class="info-title">Allergies</div>
+733
++                <div class="info-desc">Prevents dangerous reactions to medications</div>
+734
++              </div>
+735
++            </div>
+736
++            <p style="font-size:12px;color:var(--muted-fg);margin-top:16px;">This information is stored locally on your device and can be shown to emergency responders when needed.</p>
+737
++          </div>
+738
++        </div>
+739
++      </div>
+740
++    </div>
+741
++
+742
++    <!-- ===== HISTORY PAGE ===== -->
+743
++    <div class="page" id="page-history">
+744
++      <div class="status-bar">
+745
++        <span class="clock-mirror"></span>
+746
++        <div class="status-icons"><div class="status-dot"></div><span class="battery-indicator battery-mirror"></span></div>
+747
++      </div>
+748
++      <div class="container">
+749
++        <div class="page-content">
+750
++          <div class="flex-between">
+751
++            <div>
+752
++              <h1 style="font-size:24px;font-weight:700;">History</h1>
+753
++              <p style="font-size:14px;color:var(--muted-fg);margin-top:4px;">Your emergency activity log</p>
+754
++            </div>
+755
++            <button class="text-btn danger" id="clearHistoryBtn" onclick="clearHistory()">Clear All</button>
+756
++          </div>
+757
++          <div id="historyList"></div>
+758
++        </div>
+759
++      </div>
+760
++    </div>
+761
++
+762
++    <!-- ===== SETTINGS PAGE ===== -->
+763
++    <div class="page" id="page-settings">
+764
++      <div class="status-bar">
+765
++        <span class="clock-mirror"></span>
+766
++        <div class="status-icons"><div class="status-dot"></div><span class="battery-indicator battery-mirror"></span></div>
+767
++      </div>
+768
++      <div class="container">
+769
++        <div class="page-content">
+770
++          <div>
+771
++            <h1 style="font-size:24px;font-weight:700;">Settings</h1>
+772
++            <p style="font-size:14px;color:var(--muted-fg);margin-top:4px;">Customize your emergency app</p>
+773
++          </div>
+774
++
+775
++          <div class="settings-group" id="settingsToggles"></div>
+776
++
+777
++          <div class="settings-group" id="settingsLinks"></div>
+778
++
+779
++          <div class="glass-card" style="border-color:rgba(220,38,38,0.3);">
+780
++            <div style="display:flex;align-items:flex-start;gap:12px;">
+781
++              <div style="width:40px;height:40px;border-radius:12px;background:rgba(220,38,38,0.2);display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+782
++                <svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="20" height="20"><path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/></svg>
+783
++              </div>
+784
++              <div>
+785
++                <div style="font-weight:600;">Your Safety Matters</div>
+786
++                <p style="font-size:12px;color:var(--muted-fg);margin-top:4px;">This app is designed to help you in emergencies. Make sure to keep your emergency contacts and medical information up to date.</p>
+787
++              </div>
+788
++            </div>
+789
++          </div>
+790
++        </div>
+791
++      </div>
+792
++    </div>
+793
++
+794
++    <!-- Bottom Navigation -->
+795
++    <nav class="bottom-nav">
+796
++      <div class="nav-inner">
+797
++        <button class="nav-item emergency active" onclick="navigateTo('sos')" id="nav-sos">
+798
++          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+799
++          <span>SOS</span>
+800
++        </button>
+801
++        <button class="nav-item" onclick="navigateTo('contacts')" id="nav-contacts">
+802
++          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+803
++          <span>Contacts</span>
+804
++        </button>
+805
++        <button class="nav-item" onclick="navigateTo('medical')" id="nav-medical">
+806
++          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z"/></svg>
+807
++          <span>Medical</span>
+808
++        </button>
+809
++        <button class="nav-item" onclick="navigateTo('history')" id="nav-history">
+810
++          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+811
++          <span>History</span>
+812
++        </button>
+813
++        <button class="nav-item" onclick="navigateTo('settings')" id="nav-settings">
+814
++          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+815
++          <span>Settings</span>
+816
++        </button>
+817
++      </div>
+818
++    </nav>
+819
++  </div>
+820
++
+821
++  <script>
+822
++    // ===== STATE =====
+823
++    let sosActive = false;
+824
++    let sosInterval = null;
+825
++    let sosProgress = 0;
+826
++    let isTracking = false;
+827
++    let watchId = null;
+828
++    let currentLocation = null;
+829
++    let isRecording = false;
+830
++    let currentPage = 'sos';
+831
++
+832
++    let contacts = JSON.parse(localStorage.getItem('emergencyContacts') || 'null') || [
+833
++      { id: '1', name: 'Mom', phone: '+1234567890' },
+834
++      { id: '2', name: 'Dad', phone: '+0987654321' }
+835
++    ];
+836
++
+837
++    let medicalInfo = JSON.parse(localStorage.getItem('medicalInfo') || 'null') || {
+838
++      bloodType: '', allergies: '', medications: '', conditions: '', emergencyNotes: ''
+839
++    };
+840
++
+841
++    let history = JSON.parse(localStorage.getItem('emergencyHistory') || 'null') || [
+842
++      { id: '1', type: 'sos', description: 'SOS Alert Activated', timestamp: Date.now() - 86400000, location: { lat: 28.6139, lng: 77.209 } },
+843
++      { id: '2', type: 'location', description: 'Location shared with contacts', timestamp: Date.now() - 172800000, location: { lat: 28.6139, lng: 77.209 } },
+844
++      { id: '3', type: 'call', description: 'Emergency call to 100 (Police)', timestamp: Date.now() - 259200000 }
+845
++    ];
+846
++
+847
++    let settings = JSON.parse(localStorage.getItem('appSettings') || 'null') || {
+848
++      notifications: true, voiceActivation: false, autoLocation: true, offlineMode: false
+849
++    };
+850
++
+851
++    const bloodTypes = ['A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-'];
+852
++
+853
++    // ===== CLOCK =====
+854
++    function updateClock() {
+855
++      const t = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+856
++      document.getElementById('clock').textContent = t;
+857
++      document.querySelectorAll('.clock-mirror').forEach(el => el.textContent = t);
+858
++    }
+859
++    setInterval(updateClock, 1000);
+860
++    updateClock();
+861
++
+862
++    // ===== BATTERY =====
+863
++    async function initBattery() {
+864
++      try {
+865
++        const battery = await navigator.getBattery?.();
+866
++        if (battery) {
+867
++          const update = () => {
+868
++            const lvl = Math.round(battery.level * 100) + '%';
+869
++            document.getElementById('battery').textContent = lvl;
+870
++            document.querySelectorAll('.battery-mirror').forEach(el => el.textContent = lvl);
+871
++          };
+872
++          update();
+873
++          battery.addEventListener('levelchange', update);
+874
++        }
+875
++      } catch(e) {}
+876
++    }
+877
++    initBattery();
+878
++
+879
++    // ===== TOAST =====
+880
++    function showToast(msg, type = 'info') {
+881
++      const container = document.getElementById('toastContainer');
+882
++      const toast = document.createElement('div');
+883
++      toast.className = `toast ${type}`;
+884
++      toast.textContent = msg;
+885
++      container.appendChild(toast);
+886
++      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity 0.3s'; setTimeout(() => toast.remove(), 300); }, 3000);
+887
++    }
+888
++
+889
++    // ===== NAVIGATION =====
+890
++    function navigateTo(page) {
+891
++      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+892
++      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+893
++      document.getElementById('page-' + page).classList.add('active');
+894
++      document.getElementById('nav-' + page).classList.add('active');
+895
++      currentPage = page;
+896
++      if (page === 'contacts') renderContacts();
+897
++      if (page === 'medical') renderMedical();
+898
++      if (page === 'history') renderHistory();
+899
++      if (page === 'settings') renderSettings();
+900
++    }
+901
++
+902
++    // ===== SOS BUTTON =====
+903
++    const sosBtn = document.getElementById('sosBtn');
+904
++    const sosProgressEl = document.getElementById('sosProgress');
+905
++    const sosHint = document.getElementById('sosHint');
+906
++
+907
++    function startSOS() {
+908
++      sosProgress = 0;
+909
++      sosInterval = setInterval(() => {
+910
++        sosProgress += 2;
+911
++        sosProgressEl.setAttribute('stroke-dasharray', `${sosProgress * 5.65} 565`);
+912
++        if (sosProgress >= 100) {
+913
++          clearInterval(sosInterval);
+914
++          sosInterval = null;
+915
++          activateSOS();
+916
++        }
+917
++      }, 30);
+918
++      sosHint.textContent = 'Keep holding...';
+919
++      sosHint.className = 'sos-hint active-text';
+920
++    }
+921
++
+922
++    function stopSOS() {
+923
++      if (sosInterval) { clearInterval(sosInterval); sosInterval = null; }
+924
++      sosProgress = 0;
+925
++      sosProgressEl.setAttribute('stroke-dasharray', '0 565');
+926
++      if (!sosActive) {
+927
++        sosHint.textContent = 'Hold for 1.5 seconds to activate emergency alert';
+928
++        sosHint.className = 'sos-hint';
+929
++      }
+930
++    }
+931
++
+932
++    function activateSOS() {
+933
++      sosActive = true;
+934
++      sosBtn.classList.add('active');
+935
++      sosHint.textContent = 'SOS Active - Help is coming';
+936
++      sosHint.className = 'sos-hint active-text';
+937
++      showToast('🚨 SOS ACTIVATED - Emergency alert triggered', 'error');
+938
++      addHistoryEntry('sos', 'SOS Alert Activated');
+939
++      setTimeout(() => {
+940
++        sosActive = false;
+941
++        sosBtn.classList.remove('active');
+942
++        sosHint.textContent = 'Hold for 1.5 seconds to activate emergency alert';
+943
++        sosHint.className = 'sos-hint';
+944
++        showToast('SOS deactivated', 'success');
+945
++      }, 30000);
+946
++    }
+947
++
+948
++    sosBtn.addEventListener('mousedown', startSOS);
+949
++    sosBtn.addEventListener('touchstart', (e) => { e.preventDefault(); startSOS(); });
+950
++    window.addEventListener('mouseup', stopSOS);
+951
++    window.addEventListener('touchend', stopSOS);
+952
++
+953
++    // ===== DIALER =====
+954
++    function makeCall(number) {
+955
++      window.location.href = 'tel:' + number;
+956
++      addHistoryEntry('call', 'Emergency call to ' + number);
+957
++    }
+958
++
+959
++    // ===== LOCATION =====
+960
++    function getLocation() {
+961
++      if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
+962
++      document.getElementById('locationContent').innerHTML = '<button class="btn btn-primary btn-full btn-large" disabled><span style="display:inline-block;animation:spin 1s linear infinite;width:20px;height:20px;border:2px solid white;border-top-color:transparent;border-radius:50;"></span> Getting Location...</button>';
+963
++
+964
++      navigator.geolocation.getCurrentPosition(
+965
++        (pos) => {
+966
++          currentLocation = { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy };
+967
++          renderLocationData();
+968
++          showToast('Location updated', 'success');
+969
++        },
+970
++        (err) => {
+971
++          showToast('Failed to get location: ' + err.message, 'error');
+972
++          document.getElementById('locationContent').innerHTML = '<button class="btn btn-primary btn-full btn-large" onclick="getLocation()">Get My Location</button>';
+973
++        },
+974
++        { enableHighAccuracy: true, timeout: 10000 }
+975
++      );
+976
++    }
+977
++
+978
++    function renderLocationData() {
+979
++      if (!currentLocation) return;
+980
++      const { latitude, longitude, accuracy } = currentLocation;
+981
++      const mapsLink = `https://www.google.com/maps?q=${latitude},${longitude}`;
+982
++      let accLabel, accClass;
+983
++      if (accuracy <= 30) { accLabel = 'Good'; accClass = 'good'; }
+984
++      else if (accuracy <= 100) { accLabel = 'Fair'; accClass = 'fair'; }
+985
++      else { accLabel = 'Poor'; accClass = 'poor'; }
+986
++
+987
++      document.getElementById('accuracyDisplay').style.display = 'block';
+988
++      document.getElementById('accuracyLabel').className = 'accuracy-label ' + accClass;
+989
++      document.getElementById('accuracyLabel').textContent = accLabel;
+990
++      document.getElementById('accuracyMeters').textContent = '±' + Math.round(accuracy) + 'm';
+991
++
+992
++      document.getElementById('locationContent').innerHTML = `
+993
++        <div class="coords-box">
+994
++          <div class="coords-label">Coordinates</div>
+995
++          <div class="coords-value">${latitude.toFixed(6)}, ${longitude.toFixed(6)}</div>
+996
++        </div>
+997
++        <div class="btn-grid">
+998
++          <button class="btn btn-secondary" onclick="copyLocation()">📋 Copy</button>
+999
++          <button class="btn btn-primary" onclick="shareLocation()">📤 Share</button>
+1000
++        </div>
+1001
++        <a href="${mapsLink}" target="_blank" rel="noopener noreferrer" style="text-decoration:none;">
+1002
++          <button class="btn btn-outline btn-full">🗺️ Open in Google Maps</button>
+1003
++        </a>
+1004
++      `;
+1005
++    }
+1006
++
+1007
++    function copyLocation() {
+1008
++      if (!currentLocation) return;
+1009
++      const text = `Emergency! My location: https://www.google.com/maps?q=${currentLocation.latitude},${currentLocation.longitude}\nCoordinates: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`;
+1010
++      navigator.clipboard.writeText(text).then(() => showToast('Location copied to clipboard', 'success'));
+1011
++    }
+1012
++
+1013
++    function shareLocation() {
+1014
++      if (!currentLocation) return;
+1015
++      const mapsLink = `https://www.google.com/maps?q=${currentLocation.latitude},${currentLocation.longitude}`;
+1016
++      if (navigator.share) {
+1017
++        navigator.share({ title: 'Emergency Location', text: `Emergency! My location: ${currentLocation.latitude.toFixed(6)}, ${currentLocation.longitude.toFixed(6)}`, url: mapsLink }).catch(() => copyLocation());
+1018
++      } else { copyLocation(); }
+1019
++    }
+1020
++
+1021
++    function toggleTracking() {
+1022
++      if (isTracking) {
+1023
++        navigator.geolocation.clearWatch(watchId);
+1024
++        watchId = null; isTracking = false;
+1025
++        document.getElementById('trackingBtn').innerHTML = '🧭 Start Live Tracking';
+1026
++        document.getElementById('trackingBtn').className = 'btn btn-outline btn-full btn-success-outline';
+1027
++        document.getElementById('locationIconWrap').className = 'location-icon-wrap inactive';
+1028
++        document.getElementById('locationStatus').textContent = 'Share your location';
+1029
++        showToast('Live tracking disabled', 'info');
+1030
++      } else {
+1031
++        if (!navigator.geolocation) { showToast('Geolocation not supported', 'error'); return; }
+1032
++        watchId = navigator.geolocation.watchPosition(
+1033
++          (pos) => {
+1034
++            currentLocation = { latitude: pos.coords.latitude, longitude: pos.coords.longitude, accuracy: pos.coords.accuracy };
+1035
++            renderLocationData();
+1036
++          },
+1037
++          (err) => showToast('Tracking error: ' + err.message, 'error'),
+1038
++          { enableHighAccuracy: true }
+1039
++        );
+1040
++        isTracking = true;
+1041
++        document.getElementById('trackingBtn').innerHTML = '⏹ Stop Tracking';
+1042
++        document.getElementById('trackingBtn').className = 'btn btn-outline btn-full btn-danger-outline';
+1043
++        document.getElementById('locationIconWrap').className = 'location-icon-wrap active';
+1044
++        document.getElementById('locationStatus').innerHTML = '<span class="tracking-dot"></span> Tracking active';
+1045
++        showToast('Live tracking enabled', 'success');
+1046
++      }
+1047
++    }
+1048
++
+1049
++    // ===== QUICK ACTIONS =====
+1050
++    function toggleFlashlight() { showToast('Flashlight toggled (requires native API)', 'info'); }
+1051
++    function toggleRecording() {
+1052
++      isRecording = !isRecording;
+1053
++      const btn = document.getElementById('recordBtn');
+1054
++      if (isRecording) { btn.classList.add('active'); btn.querySelector('span').textContent = 'Stop'; showToast('Recording started', 'success'); }
+1055
++      else { btn.classList.remove('active'); btn.querySelector('span').textContent = 'Record'; showToast('Recording stopped', 'info'); }
+1056
++    }
+1057
++
+1058
++    // ===== CONTACTS =====
+1059
++    function renderContacts() {
+1060
++      const list = document.getElementById('contactsList');
+1061
++      if (contacts.length === 0) {
+1062
++        list.innerHTML = '<p style="text-align:center;padding:16px;font-size:14px;color:var(--muted-fg);">No emergency contacts added</p>';
+1063
++        return;
+1064
++      }
+1065
++      list.innerHTML = contacts.map(c => `
+1066
++        <div class="contact-item">
+1067
++          <div class="contact-avatar"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="20" height="20"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+1068
++          <div class="contact-info">
+1069
++            <div class="contact-name">${c.name}</div>
+1070
++            <div class="contact-phone">${c.phone}</div>
+1071
++          </div>
+1072
++          <div class="contact-actions">
+1073
++            <button class="icon-btn" onclick="window.location.href='sms:${c.phone}'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/></svg></button>
+1074
++            <button class="icon-btn call" onclick="window.location.href='tel:${c.phone}'"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg></button>
+1075
++            <button class="icon-btn delete" onclick="removeContact('${c.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+1076
++          </div>
+1077
++        </div>
+1078
++      `).join('');
+1079
++    }
+1080
++
+1081
++    function toggleAddForm() {
+1082
++      const form = document.getElementById('addContactForm');
+1083
++      form.classList.toggle('visible');
+1084
++    }
+1085
++
+1086
++    function addContact() {
+1087
++      const name = document.getElementById('newContactName').value.trim();
+1088
++      const phone = document.getElementById('newContactPhone').value.trim();
+1089
++      if (!name || !phone) { showToast('Please fill in all fields', 'error'); return; }
+1090
++      contacts.push({ id: Date.now().toString(), name, phone });
+1091
++      localStorage.setItem('emergencyContacts', JSON.stringify(contacts));
+1092
++      document.getElementById('newContactName').value = '';
+1093
++      document.getElementById('newContactPhone').value = '';
+1094
++      document.getElementById('addContactForm').classList.remove('visible');
+1095
++      renderContacts();
+1096
++      showToast('Contact added', 'success');
+1097
++    }
+1098
++
+1099
++    function removeContact(id) {
+1100
++      contacts = contacts.filter(c => c.id !== id);
+1101
++      localStorage.setItem('emergencyContacts', JSON.stringify(contacts));
+1102
++      renderContacts();
+1103
++      showToast('Contact removed', 'success');
+1104
++    }
+1105
++
+1106
++    // ===== MEDICAL =====
+1107
++    let medicalEditing = false;
+1108
++    let editMedical = { ...medicalInfo };
+1109
++
+1110
++    function renderMedical() {
+1111
++      const display = document.getElementById('medicalDisplay');
+1112
++      const editForm = document.getElementById('medicalEditForm');
+1113
++      const hasInfo = Object.values(medicalInfo).some(v => v.trim && v.trim() !== '');
+1114
++
+1115
++      if (medicalEditing) {
+1116
++        display.style.display = 'none';
+1117
++        editForm.classList.add('visible');
+1118
++        renderBloodTypes();
+1119
++        document.getElementById('medAllergies').value = editMedical.allergies;
+1120
++        document.getElementById('medMedications').value = editMedical.medications;
+1121
++        document.getElementById('medConditions').value = editMedical.conditions;
+1122
++        document.getElementById('medNotes').value = editMedical.emergencyNotes;
+1123
++      } else {
+1124
++        editForm.classList.remove('visible');
+1125
++        display.style.display = 'block';
+1126
++        if (!hasInfo) {
+1127
++          display.innerHTML = '<div style="text-align:center;padding:24px 0;"><p style="font-size:14px;color:var(--muted-fg);margin-bottom:12px;">No medical info added</p><button class="btn btn-outline" style="height:40px;padding:0 20px;" onclick="toggleMedicalEdit()">Add Medical Info</button></div>';
+1128
++        } else {
+1129
++          let html = '<div class="medical-grid">';
+1130
++          if (medicalInfo.bloodType) html += `<div class="medical-item"><svg viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" width="16" height="16"><path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/></svg><div><div class="label">Blood Type</div><div class="value">${medicalInfo.bloodType}</div></div></div>`;
+1131
++          if (medicalInfo.allergies) html += `<div class="medical-item"><svg viewBox="0 0 24 24" fill="none" stroke="var(--warning)" stroke-width="2" width="16" height="16"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg><div style="min-width:0;"><div class="label">Allergies</div><div class="value" style="font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${medicalInfo.allergies}</div></div></div>`;
+1132
++          if (medicalInfo.medications) html += `<div class="medical-item full"><svg viewBox="0 0 24 24" fill="none" stroke="#60a5fa" stroke-width="2" width="16" height="16"><path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z"/><path d="m8.5 8.5 7 7"/></svg><div style="min-width:0;"><div class="label">Medications</div><div class="value" style="font-size:14px;">${medicalInfo.medications}</div></div></div>`;
+1133
++          if (medicalInfo.conditions) html += `<div class="medical-item full"><div><div class="label">Conditions</div><div class="value" style="font-size:14px;">${medicalInfo.conditions}</div></div></div>`;
+1134
++          if (medicalInfo.emergencyNotes) html += `<div class="medical-item full"><div><div class="label">Notes</div><div class="value" style="font-size:14px;">${medicalInfo.emergencyNotes}</div></div></div>`;
+1135
++          html += '</div>';
+1136
++          display.innerHTML = html;
+1137
++        }
+1138
++      }
+1139
++    }
+1140
++
+1141
++    function renderBloodTypes() {
+1142
++      const grid = document.getElementById('bloodTypeGrid');
+1143
++      grid.innerHTML = bloodTypes.map(t => `<button class="blood-chip ${editMedical.bloodType === t ? 'selected' : ''}" onclick="selectBloodType('${t}')">${t}</button>`).join('');
+1144
++    }
+1145
++
+1146
++    function selectBloodType(type) {
+1147
++      editMedical.bloodType = type;
+1148
++      renderBloodTypes();
+1149
++    }
+1150
++
+1151
++    function toggleMedicalEdit() {
+1152
++      medicalEditing = !medicalEditing;
+1153
++      editMedical = { ...medicalInfo };
+1154
++      document.getElementById('medicalEditBtn').textContent = medicalEditing ? '✕' : 'Edit';
+1155
++      renderMedical();
+1156
++    }
+1157
++
+1158
++    function cancelMedicalEdit() {
+1159
++      medicalEditing = false;
+1160
++      editMedical = { ...medicalInfo };
+1161
++      document.getElementById('medicalEditBtn').textContent = 'Edit';
+1162
++      renderMedical();
+1163
++    }
+1164
++
+1165
++    function saveMedicalInfo() {
+1166
++      editMedical.allergies = document.getElementById('medAllergies').value;
+1167
++      editMedical.medications = document.getElementById('medMedications').value;
+1168
++      editMedical.conditions = document.getElementById('medConditions').value;
+1169
++      editMedical.emergencyNotes = document.getElementById('medNotes').value;
+1170
++      medicalInfo = { ...editMedical };
+1171
++      localStorage.setItem('medicalInfo', JSON.stringify(medicalInfo));
+1172
++      medicalEditing = false;
+1173
++      document.getElementById('medicalEditBtn').textContent = 'Edit';
+1174
++      renderMedical();
+1175
++      showToast('Medical info saved', 'success');
+1176
++    }
+1177
++
+1178
++    // ===== HISTORY =====
+1179
++    function addHistoryEntry(type, description) {
+1180
++      const entry = { id: Date.now().toString(), type, description, timestamp: Date.now() };
+1181
++      if (currentLocation) entry.location = { lat: currentLocation.latitude, lng: currentLocation.longitude };
+1182
++      history.unshift(entry);
+1183
++      localStorage.setItem('emergencyHistory', JSON.stringify(history));
+1184
++    }
+1185
++
+1186
++    function renderHistory() {
+1187
++      const list = document.getElementById('historyList');
+1188
++      const clearBtn = document.getElementById('clearHistoryBtn');
+1189
++      clearBtn.style.display = history.length > 0 ? 'block' : 'none';
+1190
++
+1191
++      if (history.length === 0) {
+1192
++        list.innerHTML = '<div class="glass-card"><div class="empty-state"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><h3>No History Yet</h3><p>Your emergency activities will appear here</p></div></div>';
+1193
++        return;
+1194
++      }
+1195
++
+1196
++      const iconMap = {
+1197
++        sos: { color: 'var(--primary)', path: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>' },
+1198
++        location: { color: 'var(--success)', path: '<path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/>' },
+1199
++        call: { color: '#60a5fa', path: '<circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>' }
+1200
++      };
+1201
++
+1202
++      function formatDate(ts) {
+1203
++        const diff = Math.floor((Date.now() - ts) / 86400000);
+1204
++        if (diff === 0) return 'Today';
+1205
++        if (diff === 1) return 'Yesterday';
+1206
++        if (diff < 7) return diff + ' days ago';
+1207
++        return new Date(ts).toLocaleDateString();
+1208
++      }
+1209
++
+1210
++      list.innerHTML = '<div class="glass-card" style="padding:0;">' + history.map(e => {
+1211
++        const icon = iconMap[e.type] || iconMap.call;
+1212
++        const time = new Date(e.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+1213
++        let locationLink = '';
+1214
++        if (e.location) locationLink = `<a class="history-link" href="https://maps.google.com/?q=${e.location.lat},${e.location.lng}" target="_blank">View location →</a>`;
+1215
++        return `<div class="history-item" style="padding:16px;border-bottom:1px solid rgba(46,46,46,0.5);">
+1216
++          <div class="history-left">
+1217
++            <div class="history-icon"><svg viewBox="0 0 24 24" fill="none" stroke="${icon.color}" stroke-width="2" width="16" height="16">${icon.path}</svg></div>
+1218
++            <div>
+1219
++              <div class="history-desc">${e.description}</div>
+1220
++              <div class="history-time">${formatDate(e.timestamp)} • ${time}</div>
+1221
++              ${locationLink}
+1222
++            </div>
+1223
++          </div>
+1224
++          <button class="icon-btn delete" onclick="deleteHistoryEntry('${e.id}')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg></button>
+1225
++        </div>`;
+1226
++      }).join('') + '</div>';
+1227
++    }
+1228
++
+1229
++    function deleteHistoryEntry(id) {
+1230
++      history = history.filter(h => h.id !== id);
+1231
++      localStorage.setItem('emergencyHistory', JSON.stringify(history));
+1232
++      renderHistory();
+1233
++      showToast('Entry deleted', 'success');
+1234
++    }
+1235
++
+1236
++    function clearHistory() {
+1237
++      history = [];
+1238
++      localStorage.setItem('emergencyHistory', JSON.stringify(history));
+1239
++      renderHistory();
+1240
++      showToast('History cleared', 'success');
+1241
++    }
+1242
++
+1243
++    // ===== SETTINGS =====
+1244
++    const settingsDef = [
+1245
++      { id: 'notifications', icon: '🔔', title: 'Push Notifications', desc: 'Receive emergency alerts and updates' },
+
++      { id: 'voiceActivation', icon: '🎙️', title: 'Voice Activation', desc: 'Activate SOS with voice command' },
+
++      { id: 'autoLocation', icon: '📍', title: 'Auto Location', desc: 'Automatically track location during SOS' },
+
++      { id: 'offlineMode', icon: '🛡️', title: 'Offline Mode', desc: 'Cache emergency data for offline use' }
+
++    ];
+
++    const linksDef = [
+
++      { icon: '🌐', title: 'Language', desc: 'English (US)' },
+
++      { icon: '🛡️', title: 'Privacy Policy', desc: 'View our privacy practices' },
+
++      { icon: 'ℹ️', title: 'About', desc: 'Version 1.0.0' }
+
++    ];
+
++
+
++    function renderSettings() {
+
++      const togglesEl = document.getElementById('settingsToggles');
+
++      togglesEl.innerHTML = settingsDef.map(s => `
+
++        <div class="setting-item">
+
++          <div class="setting-left">
+
++            <div class="setting-icon"><span style="font-size:20px;">${s.icon}</span></div>
+
++            <div><div class="setting-title">${s.title}</div><div class="setting-desc">${s.desc}</div></div>
+
++          </div>
+
++          <button class="toggle ${settings[s.id] ? 'on' : ''}" onclick="toggleSetting('${s.id}')"></button>
+
++        </div>
+
++      `).join('');
+
++
+
++      const linksEl = document.getElementById('settingsLinks');
+
++      linksEl.innerHTML = linksDef.map(l => `
+
++        <div class="setting-item" style="cursor:pointer;" onclick="showToast('Coming soon','info')">
+
++          <div class="setting-left">
+
++            <div class="setting-icon"><span style="font-size:20px;">${l.icon}</span></div>
+
++            <div><div class="setting-title">${l.title}</div><div class="setting-desc">${l.desc}</div></div>
+
++          </div>
+
++          <svg viewBox="0 0 24 24" fill="none" stroke="var(--muted-fg)" stroke-width="2" width="20" height="20"><path d="m9 18 6-6-6-6"/></svg>
+
++        </div>
++      `).join('');
++    }
+
++    function toggleSetting(key) {
++      settings[key] = !settings[key];
+
++      localStorage.setItem('appSettings', JSON.stringify(settings));
++      renderSettings();
++      showToast(`${key} ${settings[key] ? 'enabled' : 'disabled'}`, 'success');
++    }
++    // Initial render
+
++    renderSettings();
+
++  </script>
++</body>
+
++</html>
